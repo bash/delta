@@ -1,9 +1,10 @@
 use std::env;
 
+use bat::theme::env::BAT_THEME;
+
 use crate::options::theme::SyntaxThemePreference;
 
 const COLORTERM: &str = "COLORTERM";
-const BAT_THEME: &str = "BAT_THEME";
 const GIT_CONFIG_PARAMETERS: &str = "GIT_CONFIG_PARAMETERS";
 const GIT_PREFIX: &str = "GIT_PREFIX";
 const DELTA_FEATURES: &str = "DELTA_FEATURES";
