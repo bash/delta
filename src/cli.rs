@@ -16,6 +16,7 @@ use crate::config::delta_unreachable;
 use crate::env::DeltaEnv;
 use crate::git_config::GitConfig;
 use crate::options;
+use crate::options::theme::SyntaxThemePreference;
 use crate::utils;
 use crate::utils::bat::output::PagingMode;
 
@@ -866,7 +867,7 @@ pub struct Opt {
     /// Use --show-syntax-themes to demo available themes. Defaults to the value of the BAT_THEME
     /// environment variable, if that contains a valid theme name. --syntax-theme=none disables all
     /// syntax highlighting.
-    pub syntax_theme: Option<String>,
+    pub syntax_theme: Option<SyntaxThemePreference>,
 
     #[arg(long = "tabs", default_value = "8", value_name = "N")]
     /// The number of spaces to replace tab characters with.

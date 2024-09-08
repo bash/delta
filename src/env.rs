@@ -1,5 +1,7 @@
 use std::env;
 
+use crate::options::theme::SyntaxThemePreference;
+
 const COLORTERM: &str = "COLORTERM";
 const BAT_THEME: &str = "BAT_THEME";
 const GIT_CONFIG_PARAMETERS: &str = "GIT_CONFIG_PARAMETERS";
@@ -12,7 +14,7 @@ const DELTA_PAGER: &str = "DELTA_PAGER";
 
 #[derive(Default, Clone)]
 pub struct DeltaEnv {
-    pub bat_theme: Option<String>,
+    pub bat_theme: Option<SyntaxThemePreference>,
     pub colorterm: Option<String>,
     pub current_dir: Option<std::path::PathBuf>,
     pub experimental_max_line_distance_for_naively_paired_lines: Option<String>,
@@ -26,7 +28,7 @@ pub struct DeltaEnv {
 impl DeltaEnv {
     /// Create a structure with current environment variable
     pub fn init() -> Self {
-        let bat_theme = env::var(BAT_THEME).ok();
+        let bat_theme = env::var(BAT_THEME).ok().map(SyntaxThemePreference::new);
         let colorterm = env::var(COLORTERM).ok();
         let experimental_max_line_distance_for_naively_paired_lines =
             env::var(DELTA_EXPERIMENTAL_MAX_LINE_DISTANCE_FOR_NAIVELY_PAIRED_LINES).ok();

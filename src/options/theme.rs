@@ -13,7 +13,10 @@
 //!
 //! In the absence of other factors, the default assumes a dark terminal background.
 
+use std::convert::Infallible;
+use std::fmt;
 use std::io::{stdout, IsTerminal};
+use std::str::FromStr;
 
 use bat;
 use bat::assets::HighlightingAssets;
@@ -23,16 +26,48 @@ use terminal_colorsaurus::{color_scheme, QueryOptions};
 use crate::cli::{self, DetectDarkLight};
 use crate::color::{ColorMode, ColorMode::*};
 
+/// The choice of syntax theme.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum SyntaxThemePreference {
+    /// Use one of bat's themes.
+    Named(String),
+    /// An explicit request to disable syntax highlighting.
+    Disable(String),
+}
+
+impl SyntaxThemePreference {
+    pub fn new(theme_name: impl Into<String>) -> Self {
+        let theme_name = theme_name.into();
+        if theme_name.to_lowercase() == "none" {
+            SyntaxThemePreference::Disable(theme_name)
+        } else {
+            SyntaxThemePreference::Named(theme_name)
+        }
+    }
+}
+
+impl FromStr for SyntaxThemePreference {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(SyntaxThemePreference::new(s))
+    }
+}
+
+impl fmt::Display for SyntaxThemePreference {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SyntaxThemePreference::Named(theme) => f.write_str(theme),
+            SyntaxThemePreference::Disable(serialization) => f.write_str(serialization),
+        }
+    }
+}
+
 #[allow(non_snake_case)]
 pub fn set__color_mode__syntax_theme__syntax_set(opt: &mut cli::Opt, assets: HighlightingAssets) {
     let (color_mode, syntax_theme_name) = get_color_mode_and_syntax_theme_name(opt);
     opt.computed.color_mode = color_mode;
-
-    opt.computed.syntax_theme = if is_no_syntax_highlighting_syntax_theme_name(&syntax_theme_name) {
-        None
-    } else {
-        Some(assets.get_theme(&syntax_theme_name).clone())
-    };
+    opt.computed.syntax_theme = syntax_theme_name.map(|t| assets.get_theme(&t).clone());
     opt.computed.syntax_set = assets.get_syntax_set().unwrap().clone();
 }
 
@@ -61,24 +96,26 @@ const LIGHT_SYNTAX_THEMES: [&str; 7] = [
 const DEFAULT_LIGHT_SYNTAX_THEME: &str = "GitHub";
 const DEFAULT_DARK_SYNTAX_THEME: &str = "Monokai Extended";
 
-fn is_no_syntax_highlighting_syntax_theme_name(theme_name: &str) -> bool {
-    theme_name.to_lowercase() == "none"
-}
-
 /// Return a (theme_name, color_mode) tuple.
 /// theme_name == None in return value means syntax highlighting is disabled.
-fn get_color_mode_and_syntax_theme_name(opt: &cli::Opt) -> (ColorMode, String) {
+fn get_color_mode_and_syntax_theme_name(opt: &cli::Opt) -> (ColorMode, Option<String>) {
     let color_mode = get_color_mode(opt);
-    let syntax_theme_name = get_syntax_theme_name(opt.syntax_theme.as_ref(), get_color_mode(opt));
-    let color_mode = color_mode.unwrap_or_else(|| color_mode_from_syntax_theme(&syntax_theme_name));
-    return (color_mode, syntax_theme_name);
+    let theme = get_syntax_theme_name(opt.syntax_theme.as_ref(), get_color_mode(opt));
+    let color_mode = color_mode
+        .or_else(|| theme.as_deref().map(color_mode_from_syntax_theme))
+        .unwrap_or_default();
+    return (color_mode, theme);
 }
 
-fn get_syntax_theme_name(syntax_theme: Option<&String>, mode: Option<ColorMode>) -> String {
+fn get_syntax_theme_name(
+    syntax_theme: Option<&SyntaxThemePreference>,
+    mode: Option<ColorMode>,
+) -> Option<String> {
     match (syntax_theme, mode) {
-        (Some(theme), _) => theme.to_string(),
-        (None, None | Some(Dark)) => DEFAULT_DARK_SYNTAX_THEME.to_string(),
-        (None, Some(Light)) => DEFAULT_LIGHT_SYNTAX_THEME.to_string(),
+        (Some(SyntaxThemePreference::Disable(_)), _) => None,
+        (Some(SyntaxThemePreference::Named(theme)), _) => Some(theme.to_string()),
+        (None, None | Some(Dark)) => Some(DEFAULT_DARK_SYNTAX_THEME.to_string()),
+        (None, Some(Light)) => Some(DEFAULT_LIGHT_SYNTAX_THEME.to_string()),
     }
 }
 
@@ -183,7 +220,10 @@ mod tests {
                     .unwrap_or("none".to_string()),
                 expected_syntax_theme
             );
-            if is_no_syntax_highlighting_syntax_theme_name(expected_syntax_theme) {
+            if matches!(
+                SyntaxThemePreference::new(expected_syntax_theme),
+                SyntaxThemePreference::Disable(_)
+            ) {
                 assert!(config.syntax_theme.is_none())
             } else {
                 assert_eq!(

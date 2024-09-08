@@ -3,6 +3,7 @@ mod remote;
 pub use remote::GitRemoteRepo;
 
 use crate::env::DeltaEnv;
+use crate::options::theme::SyntaxThemePreference;
 use regex::Regex;
 use std::collections::HashMap;
 use std::path::Path;
@@ -236,6 +237,16 @@ impl GitConfigGet for f64 {
             Ok(value) => value.parse::<f64>().ok(),
             _ => None,
         }
+    }
+}
+
+impl GitConfigGet for Option<SyntaxThemePreference> {
+    fn git_config_get(key: &str, git_config: &GitConfig) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        GitConfigGet::git_config_get(key, git_config)
+            .map(|s: Option<String>| s.map(SyntaxThemePreference::new))
     }
 }
 

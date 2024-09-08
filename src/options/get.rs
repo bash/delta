@@ -6,6 +6,8 @@ use crate::git_config::{self, GitConfigGet};
 use crate::options::option_value::{OptionValue, ProvenancedOptionValue};
 use ProvenancedOptionValue::*;
 
+use super::theme::SyntaxThemePreference;
+
 // Look up a value of type `T` associated with `option name`. The search rules are:
 //
 // 1. If there is a value associated with `option_name` in the main [delta] git config
@@ -128,6 +130,7 @@ impl GetOptionValue for String {}
 impl GetOptionValue for bool {}
 impl GetOptionValue for f64 {}
 impl GetOptionValue for usize {}
+impl GetOptionValue for Option<SyntaxThemePreference> {}
 
 #[cfg(test)]
 pub mod tests {

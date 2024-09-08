@@ -673,6 +673,7 @@ pub mod tests {
     use std::fs::remove_file;
 
     use crate::cli;
+    use crate::options::theme::SyntaxThemePreference;
     use crate::tests::integration_test_utils;
     use crate::utils::bat::output::PagingMode;
 
@@ -793,7 +794,10 @@ pub mod tests {
         assert_eq!(opt.plus_style, "black black");
         assert!(opt.raw);
         assert!(opt.side_by_side);
-        assert_eq!(opt.syntax_theme, Some("xxxyyyzzz".to_string()));
+        assert_eq!(
+            opt.syntax_theme,
+            Some(SyntaxThemePreference::Named("xxxyyyzzz".to_string()))
+        );
         assert_eq!(opt.tab_width, 77);
         assert_eq!(opt.true_color, "never");
         assert_eq!(opt.whitespace_error_style, "black black");

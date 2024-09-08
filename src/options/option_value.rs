@@ -1,5 +1,7 @@
 use crate::config::delta_unreachable;
 
+use super::theme::SyntaxThemePreference;
+
 /// A value associated with a Delta command-line option name.
 pub enum OptionValue {
     Boolean(bool),
@@ -93,5 +95,17 @@ impl From<OptionValue> for usize {
             OptionValue::Int(value) => value,
             _ => delta_unreachable("Error converting OptionValue to usize."),
         }
+    }
+}
+
+impl From<Option<SyntaxThemePreference>> for OptionValue {
+    fn from(value: Option<SyntaxThemePreference>) -> Self {
+        value.map(|t| t.to_string()).into()
+    }
+}
+
+impl From<OptionValue> for Option<SyntaxThemePreference> {
+    fn from(value: OptionValue) -> Self {
+        Option::<String>::from(value).map(SyntaxThemePreference::new)
     }
 }
