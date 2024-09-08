@@ -73,3 +73,7 @@ opt-level = 3
 
 [profile.dev.package.similar]
 opt-level = 3
+
+[patch.crates-io]
+bat = { git = "https://github.com/sharkdp/bat.git", rev = "refs/pull/2896/head" }
+unicode-width = { git = "https://github.com/bash/unicode-width.git", branch = "0.1.13-actually-0.1.12" }
