@@ -30,7 +30,7 @@ use crate::color::{ColorMode, ColorMode::*};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SyntaxThemePreference {
     /// Use one of bat's themes.
-    Named(String),
+    Bat(bat::theme::ThemePreference),
     /// An explicit request to disable syntax highlighting.
     Disable(String),
 }
@@ -41,7 +41,7 @@ impl SyntaxThemePreference {
         if theme_name.to_lowercase() == "none" {
             SyntaxThemePreference::Disable(theme_name)
         } else {
-            SyntaxThemePreference::Named(theme_name)
+            SyntaxThemePreference::Bat(bat::theme::ThemePreference::new(theme_name))
         }
     }
 }
@@ -57,7 +57,7 @@ impl FromStr for SyntaxThemePreference {
 impl fmt::Display for SyntaxThemePreference {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SyntaxThemePreference::Named(theme) => f.write_str(theme),
+            SyntaxThemePreference::Bat(theme) => theme.fmt(f),
             SyntaxThemePreference::Disable(serialization) => f.write_str(serialization),
         }
     }
@@ -113,7 +113,7 @@ fn get_syntax_theme_name(
 ) -> Option<String> {
     match (syntax_theme, mode) {
         (Some(SyntaxThemePreference::Disable(_)), _) => None,
-        (Some(SyntaxThemePreference::Named(theme)), _) => Some(theme.to_string()),
+        (Some(SyntaxThemePreference::Bat(theme)), _) => Some(theme.to_string()),
         (None, None | Some(Dark)) => Some(DEFAULT_DARK_SYNTAX_THEME.to_string()),
         (None, Some(Light)) => Some(DEFAULT_LIGHT_SYNTAX_THEME.to_string()),
     }

@@ -672,6 +672,8 @@ fn is_truecolor_terminal(env: &DeltaEnv) -> bool {
 pub mod tests {
     use std::fs::remove_file;
 
+    use bat::theme::{ThemeName, ThemePreference};
+
     use crate::cli;
     use crate::options::theme::SyntaxThemePreference;
     use crate::tests::integration_test_utils;
@@ -796,7 +798,9 @@ pub mod tests {
         assert!(opt.side_by_side);
         assert_eq!(
             opt.syntax_theme,
-            Some(SyntaxThemePreference::Named("xxxyyyzzz".to_string()))
+            Some(SyntaxThemePreference::Bat(ThemePreference::Fixed(
+                ThemeName::new("xxxyyyzzz")
+            )))
         );
         assert_eq!(opt.tab_width, 77);
         assert_eq!(opt.true_color, "never");
