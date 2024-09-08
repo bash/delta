@@ -166,7 +166,7 @@ pub struct Opt {
     /// as `interactive.diffFilter`. In this case the color is queried from the terminal even
     /// though the output is redirected.
     ///
-    #[arg(long = "detect-dark-light", value_enum, default_value_t = DetectDarkLight::default())]
+    #[arg(long = "detect-dark-light", value_enum, default_value_t = DetectDarkLight::default(), hide = true)]
     pub detect_dark_light: DetectDarkLight,
 
     #[arg(
