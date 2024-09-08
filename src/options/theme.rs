@@ -25,8 +25,7 @@ use crate::color::{ColorMode, ColorMode::*};
 
 #[allow(non_snake_case)]
 pub fn set__color_mode__syntax_theme__syntax_set(opt: &mut cli::Opt, assets: HighlightingAssets) {
-    let (color_mode, syntax_theme_name) =
-        get_color_mode_and_syntax_theme_name(opt.syntax_theme.as_ref(), get_color_mode(opt));
+    let (color_mode, syntax_theme_name) = get_color_mode_and_syntax_theme_name(opt);
     opt.computed.color_mode = color_mode;
 
     opt.computed.syntax_theme = if is_no_syntax_highlighting_syntax_theme_name(&syntax_theme_name) {
@@ -68,15 +67,18 @@ fn is_no_syntax_highlighting_syntax_theme_name(theme_name: &str) -> bool {
 
 /// Return a (theme_name, color_mode) tuple.
 /// theme_name == None in return value means syntax highlighting is disabled.
-fn get_color_mode_and_syntax_theme_name(
-    syntax_theme: Option<&String>,
-    mode: Option<ColorMode>,
-) -> (ColorMode, String) {
+fn get_color_mode_and_syntax_theme_name(opt: &cli::Opt) -> (ColorMode, String) {
+    let color_mode = get_color_mode(opt);
+    let syntax_theme_name = get_syntax_theme_name(opt.syntax_theme.as_ref(), get_color_mode(opt));
+    let color_mode = color_mode.unwrap_or_else(|| color_mode_from_syntax_theme(&syntax_theme_name));
+    return (color_mode, syntax_theme_name);
+}
+
+fn get_syntax_theme_name(syntax_theme: Option<&String>, mode: Option<ColorMode>) -> String {
     match (syntax_theme, mode) {
-        (Some(theme), None) => (color_mode_from_syntax_theme(theme), theme.to_string()),
-        (Some(theme), Some(mode)) => (mode, theme.to_string()),
-        (None, None | Some(Dark)) => (Dark, DEFAULT_DARK_SYNTAX_THEME.to_string()),
-        (None, Some(Light)) => (Light, DEFAULT_LIGHT_SYNTAX_THEME.to_string()),
+        (Some(theme), _) => theme.to_string(),
+        (None, None | Some(Dark)) => DEFAULT_DARK_SYNTAX_THEME.to_string(),
+        (None, Some(Light)) => DEFAULT_LIGHT_SYNTAX_THEME.to_string(),
     }
 }
 
