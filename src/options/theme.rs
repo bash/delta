@@ -133,7 +133,7 @@ fn get_color_mode(opt: &cli::Opt) -> Option<ColorMode> {
 
 /// See [`cli::Opt::detect_dark_light`] for a detailed explanation.
 fn should_detect_color_mode(opt: &cli::Opt) -> bool {
-    match opt.detect_dark_light {
+    match opt.detect_dark_light.unwrap_or_default() {
         DetectDarkLight::Auto => opt.color_only || stdout().is_terminal(),
         DetectDarkLight::Always => true,
         DetectDarkLight::Never => false,
