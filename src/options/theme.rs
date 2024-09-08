@@ -207,4 +207,16 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn test_color_mode_of_default_themes() {
+        assert_eq!(
+            Dark,
+            color_mode_from_syntax_theme(DEFAULT_DARK_SYNTAX_THEME)
+        );
+        assert_eq!(
+            Light,
+            color_mode_from_syntax_theme(DEFAULT_LIGHT_SYNTAX_THEME)
+        );
+    }
 }
