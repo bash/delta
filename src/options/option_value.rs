@@ -1,3 +1,5 @@
+use bat::theme::ThemeName;
+
 use crate::config::delta_unreachable;
 
 use super::theme::SyntaxThemePreference;
@@ -107,5 +109,17 @@ impl From<Option<SyntaxThemePreference>> for OptionValue {
 impl From<OptionValue> for Option<SyntaxThemePreference> {
     fn from(value: OptionValue) -> Self {
         Option::<String>::from(value).map(SyntaxThemePreference::new)
+    }
+}
+
+impl From<Option<ThemeName>> for OptionValue {
+    fn from(value: Option<ThemeName>) -> Self {
+        value.map(|t| t.to_string()).into()
+    }
+}
+
+impl From<OptionValue> for Option<ThemeName> {
+    fn from(value: OptionValue) -> Self {
+        Option::<String>::from(value).map(ThemeName::new)
     }
 }

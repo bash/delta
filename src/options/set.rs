@@ -81,6 +81,12 @@ pub fn set_options(
     if opt.syntax_theme.is_none() {
         opt.syntax_theme.clone_from(&opt.env.bat_theme);
     }
+    if opt.syntax_theme_dark.is_none() {
+        opt.syntax_theme_dark.clone_from(&opt.env.bat_theme_dark);
+    }
+    if opt.syntax_theme_light.is_none() {
+        opt.syntax_theme_light.clone_from(&opt.env.bat_theme_light);
+    }
 
     let option_names = cli::Opt::get_argument_and_option_names();
 
@@ -280,7 +286,7 @@ fn set__light__dark__syntax_theme__options(
     }
     validate_light_and_dark(opt);
     set_options!(
-        [syntax_theme],
+        [syntax_theme, syntax_theme_dark, syntax_theme_light],
         opt,
         &empty_builtin_features,
         git_config,

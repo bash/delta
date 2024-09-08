@@ -1,5 +1,6 @@
 mod remote;
 
+use bat::theme::ThemeName;
 pub use remote::GitRemoteRepo;
 
 use crate::env::DeltaEnv;
@@ -247,6 +248,15 @@ impl GitConfigGet for Option<SyntaxThemePreference> {
     {
         GitConfigGet::git_config_get(key, git_config)
             .map(|s: Option<String>| s.map(SyntaxThemePreference::new))
+    }
+}
+
+impl GitConfigGet for Option<ThemeName> {
+    fn git_config_get(key: &str, git_config: &GitConfig) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        GitConfigGet::git_config_get(key, git_config).map(|s: Option<String>| s.map(ThemeName::new))
     }
 }
 

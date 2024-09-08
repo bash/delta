@@ -1,6 +1,7 @@
 use std::env;
 
-use bat::theme::env::BAT_THEME;
+use bat::theme::env::{BAT_THEME, BAT_THEME_DARK, BAT_THEME_LIGHT};
+use bat::theme::ThemeName;
 
 use crate::options::theme::SyntaxThemePreference;
 
@@ -16,6 +17,8 @@ const DELTA_PAGER: &str = "DELTA_PAGER";
 #[derive(Default, Clone)]
 pub struct DeltaEnv {
     pub bat_theme: Option<SyntaxThemePreference>,
+    pub bat_theme_dark: Option<ThemeName>,
+    pub bat_theme_light: Option<ThemeName>,
     pub colorterm: Option<String>,
     pub current_dir: Option<std::path::PathBuf>,
     pub experimental_max_line_distance_for_naively_paired_lines: Option<String>,
@@ -30,6 +33,8 @@ impl DeltaEnv {
     /// Create a structure with current environment variable
     pub fn init() -> Self {
         let bat_theme = env::var(BAT_THEME).ok().map(SyntaxThemePreference::new);
+        let bat_theme_dark = env::var(BAT_THEME_DARK).ok().map(ThemeName::new);
+        let bat_theme_light = env::var(BAT_THEME_LIGHT).ok().map(ThemeName::new);
         let colorterm = env::var(COLORTERM).ok();
         let experimental_max_line_distance_for_naively_paired_lines =
             env::var(DELTA_EXPERIMENTAL_MAX_LINE_DISTANCE_FOR_NAIVELY_PAIRED_LINES).ok();
@@ -50,6 +55,8 @@ impl DeltaEnv {
 
         Self {
             bat_theme,
+            bat_theme_dark,
+            bat_theme_light,
             colorterm,
             current_dir,
             experimental_max_line_distance_for_naively_paired_lines,

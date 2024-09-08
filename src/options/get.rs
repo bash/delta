@@ -4,6 +4,7 @@ use crate::cli;
 use crate::features;
 use crate::git_config::{self, GitConfigGet};
 use crate::options::option_value::{OptionValue, ProvenancedOptionValue};
+use bat::theme::ThemeName;
 use ProvenancedOptionValue::*;
 
 use super::theme::SyntaxThemePreference;
@@ -131,6 +132,7 @@ impl GetOptionValue for bool {}
 impl GetOptionValue for f64 {}
 impl GetOptionValue for usize {}
 impl GetOptionValue for Option<SyntaxThemePreference> {}
+impl GetOptionValue for Option<ThemeName> {}
 
 #[cfg(test)]
 pub mod tests {

@@ -3,6 +3,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use bat::assets::HighlightingAssets;
+use bat::theme::ThemeName;
 use clap::{ArgMatches, ColorChoice, CommandFactory, FromArgMatches, Parser, ValueEnum, ValueHint};
 use clap_complete::Shell;
 use console::Term;
@@ -865,9 +866,29 @@ pub struct Opt {
     /// The syntax-highlighting theme to use.
     ///
     /// Use --show-syntax-themes to demo available themes. Defaults to the value of the BAT_THEME
-    /// environment variable, if that contains a valid theme name. --syntax-theme=none disables all
-    /// syntax highlighting.
+    /// environment variable, if that contains a valid theme name.
+    ///
+    /// The following special values are recognized: {n}
+    /// * "auto" - automatically choose between "--syntax-theme-dark"
+    ///   and "--syntax-theme-light" based on the terminal's color scheme. {n}
+    /// * "auto:always" - same as auto but always tries to detect the terminal's color scheme
+    ///   even when the output is redirected. {n}
+    /// * "auto:system" - same as auto but tries to detect the system's
+    ///   global color scheme preference instead. {n}
+    /// * "dark" - use the theme specified by "--syntax-theme-dark" (or BAT_THEME_DARK) {n}
+    /// * "light" - use the theme specified by "--syntax-theme-light" (or BAT_THEME_LIGHT) {n}
+    /// * "none"  - disables all syntax highlighting
     pub syntax_theme: Option<SyntaxThemePreference>,
+
+    #[arg(long = "syntax-theme-dark", value_name = "SYNTAX_THEME")]
+    /// The syntax-highlighting theme to use when the terminal uses a dark background.
+    /// Defaults to the value of the BAT_THEME_DARK environment variable.
+    pub syntax_theme_dark: Option<ThemeName>,
+
+    #[arg(long = "syntax-theme-light", value_name = "SYNTAX_THEME")]
+    /// The syntax-highlighting theme to use when the terminal uses a light background.
+    /// Defaults to the value of the BAT_THEME_LIGHT environment variable.
+    pub syntax_theme_light: Option<ThemeName>,
 
     #[arg(long = "tabs", default_value = "8", value_name = "N")]
     /// The number of spaces to replace tab characters with.
