@@ -93,8 +93,12 @@ const LIGHT_SYNTAX_THEMES: [&str; 7] = [
     "Solarized (light)",
 ];
 
-const DEFAULT_LIGHT_SYNTAX_THEME: &str = "GitHub";
-const DEFAULT_DARK_SYNTAX_THEME: &str = "Monokai Extended";
+const fn default_syntax_theme(color_mode: ColorMode) -> &'static str {
+    match color_mode {
+        Light => "GitHub",
+        Dark => "Monokai Extended",
+    }
+}
 
 /// Return a (theme_name, color_mode) tuple.
 /// theme_name == None in return value means syntax highlighting is disabled.
@@ -111,11 +115,10 @@ fn get_syntax_theme_name(
     syntax_theme: Option<&SyntaxThemePreference>,
     mode: Option<ColorMode>,
 ) -> Option<String> {
-    match (syntax_theme, mode) {
-        (Some(SyntaxThemePreference::Disable(_)), _) => None,
-        (Some(SyntaxThemePreference::Bat(theme)), _) => Some(theme.to_string()),
-        (None, None | Some(Dark)) => Some(DEFAULT_DARK_SYNTAX_THEME.to_string()),
-        (None, Some(Light)) => Some(DEFAULT_LIGHT_SYNTAX_THEME.to_string()),
+    match syntax_theme {
+        Some(SyntaxThemePreference::Disable(_)) => None,
+        Some(SyntaxThemePreference::Bat(theme)) => Some(theme.to_string()),
+        None => Some(default_syntax_theme(mode.unwrap_or_default()).to_string()),
     }
 }
 
