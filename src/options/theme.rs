@@ -20,6 +20,9 @@ use std::str::FromStr;
 
 use bat;
 use bat::assets::HighlightingAssets;
+use bat::theme::{
+    color_scheme, DetectColorScheme, ThemeName, ThemeOptions, ThemePreference, ThemeResult,
+};
 #[cfg(not(test))]
 use terminal_colorsaurus::{color_scheme, QueryOptions};
 
@@ -33,6 +36,12 @@ pub enum SyntaxThemePreference {
     Bat(bat::theme::ThemePreference),
     /// An explicit request to disable syntax highlighting.
     Disable(String),
+}
+
+impl Default for SyntaxThemePreference {
+    fn default() -> Self {
+        SyntaxThemePreference::Bat(ThemePreference::default())
+    }
 }
 
 impl SyntaxThemePreference {
@@ -140,6 +149,49 @@ fn should_detect_color_mode(opt: &cli::Opt) -> bool {
         DetectDarkLight::Auto => opt.color_only || stdout().is_terminal(),
         DetectDarkLight::Always => true,
         DetectDarkLight::Never => false,
+    }
+}
+
+fn theme_options(opt: &cli::Opt) -> Option<ThemeOptions> {
+    Some(ThemeOptions {
+        theme: theme_preference(opt)?,
+        theme_dark: opt.syntax_theme_dark.clone(),
+        theme_light: opt.syntax_theme_light.clone(),
+    })
+}
+
+fn theme_preference(opt: &cli::Opt) -> Option<ThemePreference> {
+    match opt.syntax_theme.clone().unwrap_or_default() {
+        SyntaxThemePreference::Bat(theme) => Some(customized_theme_preference(theme, opt)),
+        SyntaxThemePreference::Disable(_) => None,
+    }
+}
+
+fn customized_theme_preference(theme: ThemePreference, opt: &cli::Opt) -> ThemePreference {
+    use ThemePreference::*;
+    match theme {
+        Fixed(_) => theme,
+        _ if opt.dark => Dark,
+        _ if opt.light => Light,
+        Auto(detect) => todo!(),
+        Auto(DetectColorScheme::Always) => todo!(),
+        Auto(DetectColorScheme::System) => todo!(),
+        _ => theme,
+    }
+}
+
+fn theme(options: ThemeOptions) -> ThemeResult {
+    // bat does not detect the color scheme in case
+    // a fixed theme is chosen.
+    if let ThemePreference::Fixed(theme) = options.theme {
+        // TODO: correctly fill in detect color scheme.
+        let color_scheme = color_scheme(DetectColorScheme::Auto);
+        ThemeResult {
+            theme,
+            color_scheme,
+        }
+    } else {
+        theme(options)
     }
 }
 
