@@ -13,16 +13,54 @@
 //!
 //! In the absence of other factors, the default assumes a dark terminal background.
 
-use bat::assets::HighlightingAssets;
-use bat::theme::ThemePreference as BatThemePreference;
-use syntect::highlighting::Theme as SyntaxTheme;
-use syntect::parsing::SyntaxSet;
+use bat::theme::{
+    DetectColorScheme as BatDetectColorScheme, ThemeName as BatThemeName,
+    ThemeOptions as BatThemeOptions, ThemePreference as BatThemePreference,
+};
 
-use crate::cli::{self, DetectDarkLight};
+use crate::cli::DetectDarkLight;
 use crate::color::ColorMode;
 
-pub fn choose_theme(options: ThemeOptions, assets: HighlightingAssets) -> ThemeResult {
-    todo!()
+pub fn choose_theme(options: ThemeOptions) -> ThemeResult {
+    match bat_theme_preference(&options) {
+        None => {
+            // TODO: detect, respect opt.color_only
+            ThemeResult::no_syntax_highlighting(options.color_mode.unwrap_or_default())
+        }
+        Some(bat_theme) => {
+            // TODO: detect, respect opt.color_only
+            let bat_options = BatThemeOptions {
+                theme: bat_theme,
+                theme_dark: options.syntax_theme_dark,
+                theme_light: options.syntax_theme_light,
+            };
+            let result = bat::theme::theme(bat_options);
+            todo!()
+        }
+    }
+}
+
+fn bat_theme_preference(options: &ThemeOptions) -> Option<BatThemePreference> {
+    if let SyntaxThemePreference::Disable(_) = &options.syntax_theme {
+        None
+    } else if let Some(color_mode) = options.color_mode {
+        Some(color_mode.into())
+    } else if let (
+        SyntaxThemePreference::Bat(BatThemePreference::Auto(_)),
+        Some(detect_dark_light),
+    ) = (&options.syntax_theme, options.detect_dark_light)
+    {
+        use DetectDarkLight::*;
+        match detect_dark_light {
+            Auto => Some(BatThemePreference::Auto(BatDetectColorScheme::Auto)),
+            Always => Some(BatThemePreference::Auto(BatDetectColorScheme::Always)),
+            Never => Some(BatThemePreference::Dark),
+        }
+    } else if let SyntaxThemePreference::Bat(bat_theme) = &options.syntax_theme {
+        Some(bat_theme.clone())
+    } else {
+        unreachable!()
+    }
 }
 
 /// All the inputs needed to choose a syntax theme and
@@ -30,19 +68,13 @@ pub fn choose_theme(options: ThemeOptions, assets: HighlightingAssets) -> ThemeR
 #[derive(Debug, Clone)]
 pub struct ThemeOptions {
     /// See: [`crate::cli::Opt::syntax_theme`].
-    pub syntax_theme: Option<SyntaxThemePreference>,
+    pub syntax_theme: SyntaxThemePreference,
+    pub syntax_theme_dark: Option<BatThemeName>,
+    pub syntax_theme_light: Option<BatThemeName>,
     /// See: [`crate::cli::Opt::dark`] / [`crate::cli::Opt::light`].
     pub color_mode: Option<ColorMode>,
     /// See: [`crate::cli::Opt::detect_dark_light`].
     pub detect_dark_light: Option<DetectDarkLight>,
-}
-
-/// The result of choosing a syntax theme and a color mode.
-#[derive(Debug, Clone)]
-pub struct ThemeResult {
-    pub syntax_theme: SyntaxTheme,
-    pub syntax_set: SyntaxSet,
-    pub color_mode: ColorMode,
 }
 
 /// The choice of syntax theme.
@@ -52,4 +84,54 @@ pub enum SyntaxThemePreference {
     Bat(BatThemePreference),
     /// An explicit request to disable syntax highlighting.
     Disable(String),
+}
+
+impl Default for SyntaxThemePreference {
+    fn default() -> Self {
+        SyntaxThemePreference::Bat(BatThemePreference::default())
+    }
+}
+
+impl SyntaxThemePreference {
+    /// Creates a theme preference from a string.
+    pub fn new(s: impl Into<String>) -> Self {
+        let s = s.into();
+        if is_no_syntax_highlighting_syntax_theme_name(&s) {
+            SyntaxThemePreference::Disable(s)
+        } else {
+            SyntaxThemePreference::Bat(BatThemePreference::new(s))
+        }
+    }
+}
+
+impl From<ColorMode> for BatThemePreference {
+    fn from(value: ColorMode) -> Self {
+        match value {
+            ColorMode::Dark => BatThemePreference::Dark,
+            ColorMode::Light => BatThemePreference::Light,
+        }
+    }
+}
+
+/// The result of choosing a syntax theme and a color mode.
+#[derive(Debug, Clone)]
+pub struct ThemeResult {
+    pub syntax_theme: Option<SyntaxThemeName>,
+    pub color_mode: ColorMode,
+}
+
+impl ThemeResult {
+    pub fn no_syntax_highlighting(color_mode: ColorMode) -> Self {
+        ThemeResult {
+            color_mode,
+            syntax_theme: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SyntaxThemeName(pub String);
+
+fn is_no_syntax_highlighting_syntax_theme_name(theme_name: &str) -> bool {
+    theme_name.to_lowercase() == "none"
 }
